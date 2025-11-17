@@ -1,0 +1,299 @@
+{
+  "updated_at": "2025-11-14 19:48:47",
+  "free_count": 73,
+  "total_count": 73,
+  "rooms": [
+    {
+      "number": "D101",
+      "status": "free"
+    },
+    {
+      "number": "D102",
+      "status": "free"
+    },
+    {
+      "number": "D103",
+      "status": "free"
+    },
+    {
+      "number": "D104",
+      "status": "free"
+    },
+    {
+      "number": "D105",
+      "status": "free"
+    },
+    {
+      "number": "D116",
+      "status": "free"
+    },
+    {
+      "number": "D117",
+      "status": "free"
+    },
+    {
+      "number": "D201",
+      "status": "free"
+    },
+    {
+      "number": "D202",
+      "status": "free"
+    },
+    {
+      "number": "D203",
+      "status": "free"
+    },
+    {
+      "number": "D217",
+      "status": "free"
+    },
+    {
+      "number": "D218",
+      "status": "free"
+    },
+    {
+      "number": "D301",
+      "status": "free"
+    },
+    {
+      "number": "D302",
+      "status": "free"
+    },
+    {
+      "number": "D303",
+      "status": "free"
+    },
+    {
+      "number": "E101",
+      "status": "free"
+    },
+    {
+      "number": "E102",
+      "status": "free"
+    },
+    {
+      "number": "E103",
+      "status": "free"
+    },
+    {
+      "number": "E104",
+      "status": "free"
+    },
+    {
+      "number": "E105",
+      "status": "free"
+    },
+    {
+      "number": "E117",
+      "status": "free"
+    },
+    {
+      "number": "E201",
+      "status": "free"
+    },
+    {
+      "number": "E202",
+      "status": "free"
+    },
+    {
+      "number": "E203",
+      "status": "free"
+    },
+    {
+      "number": "E217",
+      "status": "free"
+    },
+    {
+      "number": "E301",
+      "status": "free"
+    },
+    {
+      "number": "E302",
+      "status": "free"
+    },
+    {
+      "number": "E303",
+      "status": "free"
+    },
+    {
+      "number": "F102",
+      "status": "free"
+    },
+    {
+      "number": "F103",
+      "status": "free"
+    },
+    {
+      "number": "F104",
+      "status": "free"
+    },
+    {
+      "number": "F105",
+      "status": "free"
+    },
+    {
+      "number": "F108",
+      "status": "free"
+    },
+    {
+      "number": "F201",
+      "status": "free"
+    },
+    {
+      "number": "F202",
+      "status": "free"
+    },
+    {
+      "number": "F203",
+      "status": "free"
+    },
+    {
+      "number": "F205",
+      "status": "free"
+    },
+    {
+      "number": "F301",
+      "status": "free"
+    },
+    {
+      "number": "F302",
+      "status": "free"
+    },
+    {
+      "number": "F303",
+      "status": "free"
+    },
+    {
+      "number": "G101",
+      "status": "free"
+    },
+    {
+      "number": "G102",
+      "status": "free"
+    },
+    {
+      "number": "G103",
+      "status": "free"
+    },
+    {
+      "number": "G104",
+      "status": "free"
+    },
+    {
+      "number": "G105",
+      "status": "free"
+    },
+    {
+      "number": "G201",
+      "status": "free"
+    },
+    {
+      "number": "G202",
+      "status": "free"
+    },
+    {
+      "number": "G203",
+      "status": "free"
+    },
+    {
+      "number": "G301",
+      "status": "free"
+    },
+    {
+      "number": "G302",
+      "status": "free"
+    },
+    {
+      "number": "G303",
+      "status": "free"
+    },
+    {
+      "number": "H101",
+      "status": "free"
+    },
+    {
+      "number": "H102",
+      "status": "free"
+    },
+    {
+      "number": "H103",
+      "status": "free"
+    },
+    {
+      "number": "H104",
+      "status": "free"
+    },
+    {
+      "number": "H105",
+      "status": "free"
+    },
+    {
+      "number": "H201",
+      "status": "free"
+    },
+    {
+      "number": "H202",
+      "status": "free"
+    },
+    {
+      "number": "H203",
+      "status": "free"
+    },
+    {
+      "number": "H301",
+      "status": "free"
+    },
+    {
+      "number": "H302",
+      "status": "free"
+    },
+    {
+      "number": "H303",
+      "status": "free"
+    },
+    {
+      "number": "I101",
+      "status": "free"
+    },
+    {
+      "number": "I102",
+      "status": "free"
+    },
+    {
+      "number": "I103",
+      "status": "free"
+    },
+    {
+      "number": "I104",
+      "status": "free"
+    },
+    {
+      "number": "I105",
+      "status": "free"
+    },
+    {
+      "number": "I201",
+      "status": "free"
+    },
+    {
+      "number": "I202",
+      "status": "free"
+    },
+    {
+      "number": "I203",
+      "status": "free"
+    },
+    {
+      "number": "I301",
+      "status": "free"
+    },
+    {
+      "number": "I302",
+      "status": "free"
+    },
+    {
+      "number": "I303",
+      "status": "free"
+    }
+  ]
+}
