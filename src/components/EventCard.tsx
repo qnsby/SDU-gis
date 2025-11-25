@@ -18,9 +18,11 @@ interface EventCardProps {
     isRegistered?: boolean;
     priority: 'high' | 'medium' | 'low';
   };
+  onToggleRegister?: () => void; // 🔴 колбек из Events.tsx
+  disabled?: boolean;            // 🔴 блокировка кнопки во время запроса
 }
 
-const EventCard = ({ event }: EventCardProps) => {
+const EventCard = ({ event, onToggleRegister, disabled }: EventCardProps) => {
   const priorityColors = {
     high: 'bg-red-100 text-red-800 border-red-200',
     medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
@@ -54,8 +56,8 @@ const EventCard = ({ event }: EventCardProps) => {
             <Badge className={priorityColors[event.priority]}>
               {priorityLabels[event.priority]}
             </Badge>
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className={categoryColors[event.category] || 'bg-gray-100 text-gray-800'}
             >
               {event.category}
@@ -63,24 +65,24 @@ const EventCard = ({ event }: EventCardProps) => {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <div className="flex items-center gap-2 text-sm">
             <Calendar size={14} className="text-gray-500" />
             <span>{event.date}</span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
             <Clock size={14} className="text-gray-500" />
             <span>{event.time}</span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
             <MapPin size={14} className="text-gray-500" />
             <span>{event.location}</span>
           </div>
-          
+
           <div className="flex items-center gap-2 text-sm">
             <Users size={14} className="text-gray-500" />
             <span>Организатор: {event.organizer}</span>
@@ -90,9 +92,11 @@ const EventCard = ({ event }: EventCardProps) => {
         {event.attendees !== undefined && event.maxAttendees && (
           <div className="flex items-center justify-between text-sm">
             <span className="text-gray-600">Участники:</span>
-            <span className={`font-medium ${
-              event.attendees >= event.maxAttendees ? 'text-red-600' : 'text-green-600'
-            }`}>
+            <span
+              className={`font-medium ${
+                event.attendees >= event.maxAttendees ? 'text-red-600' : 'text-green-600'
+              }`}
+            >
               {event.attendees}/{event.maxAttendees}
             </span>
           </div>
@@ -100,17 +104,30 @@ const EventCard = ({ event }: EventCardProps) => {
 
         <div className="flex gap-2">
           {event.isRegistered ? (
-            <Button size="sm" variant="outline" className="flex-1">
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="flex-1"
+              onClick={onToggleRegister}
+              disabled={disabled}
+            >
               <Bell size={14} className="mr-1" />
-              Зарегистрирован
+              {disabled ? 'Обновляем...' : 'Зарегистрирован'}
             </Button>
           ) : (
-            <Button size="sm" className="flex-1">
+            <Button
+              type="button"
+              size="sm"
+              className="flex-1"
+              onClick={onToggleRegister}
+              disabled={disabled}
+            >
               <Calendar size={14} className="mr-1" />
-              Записаться
+              {disabled ? 'Обновляем...' : 'Записаться'}
             </Button>
           )}
-          <Button size="sm" variant="outline">
+          <Button size="sm" variant="outline" type="button">
             <ExternalLink size={14} className="mr-1" />
             Подробнее
           </Button>

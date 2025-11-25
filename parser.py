@@ -7,6 +7,91 @@ import json, os
 import pytz 
 import re
 import html # Для декодирования HTML-сущностей
+from typing import List, Dict
+
+def parse_full_schedule(session: requests.Session) -> List[Dict]:
+    """
+    Полностью парсим расписание студента и возвращаем список lessons.
+    Каждый lesson:
+    {
+      "day": "Понедельник",
+      "time": "08:30-09:20",
+      "course": "INF 321",
+      "teacher": "Bakhtiyor Meraliyev",
+      "room": "H 102"
+    }
+    """
+    schedule_params = {
+        "ajx": 1,
+        "mod": "schedule",
+        "action": "showSchedule",
+        "year": "2025",
+        "term": "1",
+        "type": "I",      # или "S", как ты используешь
+        "details": "0",
+    }
+
+    schedule_response = session.post(SCHEDULE_URL, data=schedule_params, verify=False, timeout=10)
+    soup = BeautifulSoup(schedule_response.text, "html.parser")
+
+    schedule_table = soup.find("table", class_="clTbl")
+    if not schedule_table:
+        raise HTTPException(status_code=500, detail="Таблица расписания не найдена")
+
+    header_row = schedule_table.find("tr")
+    day_cells = header_row.find_all("td", class_="ctg")[1:]
+
+    day_mapping = {
+        "Mo": "Понедельник", "Tu": "Вторник", "We": "Среда",
+        "Th": "Четверг", "Fr": "Пятница", "Sa": "Суббота"
+    }
+    days_of_week = [
+        day_mapping.get(c.find("span").text.strip(), c.find("span").text.strip())
+        for c in day_cells
+    ]
+
+    time_rows = schedule_table.find_all("tr")[1:]
+
+    lessons: List[Dict] = []
+
+    for row in time_rows:
+        cells = row.find_all("td", class_="ctg")
+        if not cells:
+            continue
+
+        time_cell = cells[0]
+        time_spans = time_cell.find_all("span")
+        start_time = time_spans[0].text.strip() if len(time_spans) > 0 else ""
+        end_time   = time_spans[1].text.strip() if len(time_spans) > 1 else ""
+        time_slot  = f"{start_time}-{end_time}"
+
+        lesson_cells = cells[1:]
+
+        for day_index, lesson_cell in enumerate(lesson_cells):
+            lesson_data = lesson_cell.find("a")
+            if not lesson_data:
+                continue
+
+            day_name = days_of_week[day_index]
+            course_code = lesson_data.text.strip()
+            teacher_img = lesson_cell.find("img", src="images/stud_icon.png")
+            teacher = teacher_img.get('title', 'N/A') if teacher_img else 'N/A'
+
+            room_span = lesson_cell.find_all("span")[-1]
+            room_code = room_span.text.strip() if room_span else "N/A"
+
+            lessons.append(
+                {
+                    "day": day_name,
+                    "time": time_slot,
+                    "course": course_code,
+                    "teacher": teacher,
+                    "room": room_code,
+                }
+            )
+
+    return lessons
+
 
 # ----------------------------------------------------------------------
 # 📌 ВАЖНО: АКТУАЛЬНЫЙ СПИСОК ВСЕХ КАБИНЕТОВ ДЛЯ ПРОВЕРКИ

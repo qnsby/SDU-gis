@@ -58,6 +58,7 @@ const Login = () => {
       if (data.success) {
         localStorage.setItem('isAuthenticated', 'true');
         localStorage.setItem('studentId', data.studentId);
+        localStorage.setItem('studentPassword', password); // 👈 сохраняем пароль для /api/schedule
         if (data.studentName) {
           localStorage.setItem('studentName', data.studentName);
         }
