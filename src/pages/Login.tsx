@@ -24,7 +24,7 @@ const Login = () => {
 
     if (!studentId || !password) {
       setError('Пожалуйста, заполните все поля');
-      setIsLoading(false);
+      setIsLoading(false);  
       return;
     }
 

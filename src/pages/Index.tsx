@@ -154,7 +154,7 @@ export default function Index() {
           <div className="flex items-start gap-4">
             <div className="p-3 bg-blue-100 rounded-lg">
               <Users className="text-blue-600" size={24} />
-            </div>
+            </div> 
             <div className="flex-1">
               <h3 className="text-lg font-semibold mb-2">Интеграция с порталом SDU</h3>
               <p className="text-gray-600 mb-4">
