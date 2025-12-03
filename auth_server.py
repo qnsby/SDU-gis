@@ -1,5 +1,3 @@
-# server.py
-
 import os
 import re
 import json
@@ -13,32 +11,32 @@ import requests
 import fake_useragent
 import pytz
 from bs4 import BeautifulSoup
+from urllib.parse import urljoin
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from pymongo import MongoClient
-from pymongo.errors import DuplicateKeyError
 
 # ------------------------------------------------------
 #  Общие настройки
 # ------------------------------------------------------
 
-
-MONGO_URI = "mongodb+srv://230103235_db_user:GikXoifebcruhiCz@gistar.mbnl82j.mongodb.net/"
+MONGO_URI = "mongodb+srv://230103235_db_user:diaskons@gistar.mbnl82j.mongodb.net/"
 MONGO_DB_NAME = "sdu_gis"
 
 mongo_client = MongoClient(MONGO_URI)
 mongo_db = mongo_client[MONGO_DB_NAME]
 
-
 schedules_coll = mongo_db["schedules"]
 events_coll = mongo_db["events"]
 registrations_coll = mongo_db["event_registrations"]
+students_coll = mongo_db["students"]
 
-# по желанию: индекс по studentId у расписания
+# Индексы
 schedules_coll.create_index("studentId", unique=True)
+students_coll.create_index("studentId", unique=True)
 
 KZT = pytz.timezone("Asia/Almaty")
 warnings.filterwarnings("ignore", "Unverified HTTPS request")
@@ -47,11 +45,11 @@ LOGIN_URL = "https://my.sdu.edu.kz/loginAuth.php"
 SCHEDULE_URL = "https://my.sdu.edu.kz/index.php"
 INDEX_URL = "https://my.sdu.edu.kz/index.php"
 
-# ✔ Путь, куда будем сохранять rooms.json (поменяй под свой проект, если нужно)
+# Пути для файлов
 ROOMS_JSON_PATH = r"C:\Users\HP\Desktop\d1sk\PM\site\public\rooms.json"
-# ✔ Путь, куда будем сохранять расписания студентов
 SCHEDULES_DIR = r"C:\Users\HP\Desktop\d1sk\PM\site\public\schedules"
 os.makedirs(SCHEDULES_DIR, exist_ok=True)
+
 # ------------------------------------------------------
 #  Список всех кабинетов
 # ------------------------------------------------------
@@ -83,24 +81,19 @@ class EventIn(BaseModel):
     organizer: str
     category: str
     priority: Literal["high", "medium", "low"]
-
-
 class EventOut(EventIn):
     id: str
-
-
 class LoginRequest(BaseModel):
     studentId: str
     password: str
-
-
 class LoginResponse(BaseModel):
     success: bool
     studentId: Optional[str]
     studentName: Optional[str]
+    firstName: Optional[str]
+    lastName: Optional[str]
+    photoUrl: Optional[str]
     message: str
-
-
 class RoomsResponse(BaseModel):
     success: bool
     studentId: Optional[str]
@@ -110,45 +103,41 @@ class RoomsResponse(BaseModel):
     nowTime: Optional[str]
     freeRooms: List[Dict[str, str]]
     message: str
-
-
 class CreateEventRequest(BaseModel):
     studentId: str
     password: str
     event: EventIn
-
-
 class ScheduleLesson(BaseModel):
     day: str          # Понедельник
     time: str         # 08:30-09:20
     course: str       # INF 321
     teacher: str      # Bakhtiyor Meraliyev
     room: str         # H 102 / D217 / VR 21 и т.д.
-
-
 class ScheduleResponse(BaseModel):
     success: bool
     studentId: Optional[str]
     studentName: Optional[str]
     lessons: List[ScheduleLesson]
     message: str
-
 class RegisterEventRequest(BaseModel):
     studentId: str
     password: str
     eventId: str
-    action: Literal["register", "unregister"]  # "register" или "unregister"
-
-
+    action: Literal["register", "unregister"]
 class RegisterEventResponse(BaseModel):
     success: bool
     isRegistered: bool
     message: str
-
-
 class RegisteredEventsResponse(BaseModel):
     success: bool
     eventIds: List[str]
+class ProfileResponse(BaseModel):
+    success: bool
+    studentId: str
+    fullName: Optional[str]
+    firstName: Optional[str]
+    lastName: Optional[str]
+    photoUrl: Optional[str]
 
 # ------------------------------------------------------
 #  Вспомогательные функции
@@ -163,8 +152,6 @@ def create_session() -> requests.Session:
         "Content-Type": "application/x-www-form-urlencoded",
     })
     return session
-
-
 def login_to_sdu(student_id: str, password: str) -> requests.Session:
     """Логинимся в my.sdu.edu.kz и возвращаем сессию."""
     session = create_session()
@@ -183,7 +170,7 @@ def login_to_sdu(student_id: str, password: str) -> requests.Session:
             detail="Проблемы с соединением с my.sdu.edu.kz",
         )
 
-    # Проверим по расписанию, что реально залогинились
+    # Проверка по расписанию, что реально залогинились
     schedule_params = {
         "ajx": 1,
         "mod": "schedule",
@@ -209,7 +196,6 @@ def login_to_sdu(student_id: str, password: str) -> requests.Session:
         raise HTTPException(status_code=401, detail="Неверный ID или пароль")
 
     return session
-
 def parse_full_schedule(session: requests.Session) -> List[Dict]:
     """
     Полностью парсим расписание студента и возвращаем список lessons.
@@ -219,7 +205,7 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
       "time": "08:30-09:20",
       "course": "INF 321",
       "teacher": "Bakhtiyor Meraliyev",
-      "room": "H 102"
+      "room": "H102"
     }
     """
     schedule_params = {
@@ -228,7 +214,7 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
         "action": "showSchedule",
         "year": "2025",
         "term": "1",
-        "type": "I",      # или "S", как ты используешь
+        "type": "I",      # или "S", как нужно
         "details": "0",
     }
 
@@ -252,7 +238,6 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
     ]
 
     time_rows = schedule_table.find_all("tr")[1:]
-
     lessons: List[Dict] = []
 
     for row in time_rows:
@@ -275,6 +260,7 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
 
             day_name = days_of_week[day_index]
             course_code = lesson_data.text.strip()
+
             teacher_img = lesson_cell.find("img", src="images/stud_icon.png")
             teacher = teacher_img.get('title', 'N/A') if teacher_img else 'N/A'
 
@@ -292,9 +278,7 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
             )
 
     return lessons
-
-
-def save_schedule_to_file(student_id: str, lessons: List[ScheduleLesson]) -> str:
+def save_schedule_to_file(student_id: str, lessons: List[Dict]) -> str:
     """
     Сохраняем расписание в JSON-файл вида 230103235_schedule.json.
     Возвращаем путь к файлу.
@@ -302,47 +286,80 @@ def save_schedule_to_file(student_id: str, lessons: List[ScheduleLesson]) -> str
     os.makedirs(SCHEDULES_DIR, exist_ok=True)
     file_path = os.path.join(SCHEDULES_DIR, f"{student_id}_schedule.json")
 
-    # Конвертируем объекты ScheduleLesson в словари
-    data = [lesson.dict() for lesson in lessons]
-
     with open(file_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(lessons, f, ensure_ascii=False, indent=2)
 
     return file_path
-
-def get_student_name(session: requests.Session) -> Optional[str]:
-    """Пробуем вытащить имя студента с главной страницы."""
+def parse_student_profile(session: requests.Session, student_id: str) -> Dict[str, Optional[str]]:
+    """
+    Парсим главную страницу my.sdu.edu.kz и вытаскиваем:
+    - fullName    (Dias Konysbay)
+    - firstName   (Dias)
+    - lastName    (Konysbay)
+    - photoUrl    (https://my.sdu.edu.kz/stud_photo.php?...)
+    Плюс сохраняем это в Mongo (students_coll).
+    """
     try:
         resp = session.get(INDEX_URL, verify=False, timeout=10)
     except requests.exceptions.RequestException:
-        return None
+        profile = {
+            "studentId": student_id,
+            "fullName": None,
+            "firstName": None,
+            "lastName": None,
+            "photoUrl": None,
+        }
+        return profile
 
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    # Пробуем разные варианты (нужно подстроить под реальную разметку)
-    cand = soup.find("span", id="username")
-    if cand and cand.text.strip():
-        return cand.text.strip()
+    # --- ФИО: ищем строку таблицы, где 'Fullname :'
+    full_name = None
+    fullname_label_td = soup.find(
+        "td",
+        string=lambda s: isinstance(s, str) and "Fullname :" in s
+    )
+    if fullname_label_td:
+        value_td = fullname_label_td.find_next_sibling("td")
+        if value_td:
+            b_tag = value_td.find("b")
+            full_name = (b_tag.get_text(strip=True)
+                         if b_tag else value_td.get_text(strip=True))
 
-    cand = soup.find("div", class_="user-name")
-    if cand and cand.text.strip():
-        return cand.text.strip()
+    first_name = None
+    last_name = None
+    if full_name:
+        parts = full_name.split()
+        if len(parts) >= 2:
+            first_name, last_name = parts[0], parts[1]
+        else:
+            first_name = full_name
 
-    possible_classes = ["profile-name", "navbar-username", "user-name-text"]
-    for cls in possible_classes:
-        cand = soup.find(class_=cls)
-        if cand and cand.text.strip():
-            return cand.text.strip()
+    # --- Фото: img src="stud_photo.php?..."
+    photo_img = soup.find(
+        "img",
+        src=lambda s: isinstance(s, str) and s.startswith("stud_photo.php")
+    )
+    photoUrl = None
+    if photo_img and photo_img.get("src"):
+        photoUrl = urljoin(INDEX_URL, photo_img["src"])
 
-    # Фолбэк — грубый поиск в тексте страницы
-    text = soup.get_text(" ", strip=True)
-    m = re.search(r"Welcome,\s+([A-ZА-ЯЁ][^,(]+)", text)
-    if m:
-        return m.group(1).strip()
+    profile = {
+        "studentId": student_id,
+        "fullName": full_name,
+        "firstName": first_name,
+        "lastName": last_name,
+        "photoUrl": photoUrl,
+    }
 
-    return None
+    profile["updatedAt"] = datetime.now(KZT).isoformat()
+    students_coll.update_one(
+        {"studentId": student_id},
+        {"$set": profile},
+        upsert=True,
+    )
 
-
+    return profile
 def get_current_slot_info(time_rows) -> tuple[Optional[int], Optional[int], Optional[list]]:
     """Определяем текущий временной слот и день недели по таблице."""
     now = datetime.now(KZT)
@@ -372,20 +389,15 @@ def get_current_slot_info(time_rows) -> tuple[Optional[int], Optional[int], Opti
             continue
 
     return None, None, None
-
-
 def extract_occupied_rooms(raw_text: str) -> Set[str]:
     """
     Извлекает коды занятых аудиторий из сырого HTML текста ячейки.
-    Логика взята из твоего парсера.
     """
     occupied_rooms: Set[str] = set()
 
-    # 1. Очистка от HTML
     clean_text = re.sub(r"<[^>]+>", "", raw_text)
     clean_text = html.unescape(clean_text)
 
-    # Разбиваем по блокам вида "ABC 123"
     lesson_blocks = re.split(r"([A-Z]{3}\s\d{3})", clean_text.strip())
 
     if lesson_blocks and not lesson_blocks[0].strip():
@@ -407,17 +419,13 @@ def extract_occupied_rooms(raw_text: str) -> Set[str]:
         if final_rooms:
             occupied_rooms.update(final_rooms)
 
-        # Специальный случай для CSS 215 (если нужно)
         if "CSS 215" in lesson_blocks[i]:
             occupied_rooms.add("I101")
             occupied_rooms.add("I301")
 
     return occupied_rooms
-
-
 def get_free_rooms_for_now(session: requests.Session) -> RoomsResponse:
-    """Основная логика: достаём расписание, находим свободные кабинеты прямо сейчас."""
-
+    """Достаём расписание, находим свободные кабинеты прямо сейчас."""
     schedule_params = {
         "ajx": 1,
         "mod": "schedule",
@@ -494,13 +502,11 @@ def get_free_rooms_for_now(session: requests.Session) -> RoomsResponse:
 
     rooms_data = [{"number": room, "status": "free"} for room in available_rooms]
 
-    # Сохраняем в rooms.json
     os.makedirs(os.path.dirname(ROOMS_JSON_PATH), exist_ok=True)
     with open(ROOMS_JSON_PATH, "w", encoding="utf-8") as f:
         json.dump(rooms_data, f, ensure_ascii=False, indent=2)
 
     now_str = datetime.now(KZT).strftime("%H:%M")
-
     msg = f"Найдено {len(rooms_data)} свободных кабинетов на {current_day_name}, слот {time_slot} ({now_str} KZT)."
 
     return RoomsResponse(
@@ -514,50 +520,54 @@ def get_free_rooms_for_now(session: requests.Session) -> RoomsResponse:
         message=msg,
     )
 
-
 # ------------------------------------------------------
 #  FastAPI приложение
 # ------------------------------------------------------
 
 app = FastAPI()
 
-# Разрешаем CORS для фронта
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # можешь указать конкретный origin типа "http://localhost:5173"
+    allow_origins=["*"],  # при желании можно ограничить
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# ------------------------------------------------------
+#  Эндпоинты
+# ------------------------------------------------------
 
 @app.post("/api/login", response_model=LoginResponse)
 def api_login(payload: LoginRequest):
     """
-    Логинимся в my.sdu.edu.kz, проверяем расписание,
-    вытаскиваем имя студента и сохраняем его расписание в JSON.
+    Логинимся в my.sdu.edu.kz, парсим профиль (ФИО + фото),
+    парсим расписание и сохраняем его в файл.
     """
     session = login_to_sdu(payload.studentId, payload.password)
 
-    student_name = get_student_name(session)
-    if not student_name:
-        student_name = f"Студент {payload.studentId}"
+    profile = parse_student_profile(session, payload.studentId)
+    full_name = profile.get("fullName") or f"Студент {payload.studentId}"
+    first_name = profile.get("firstName")
+    last_name = profile.get("lastName")
+    photoUrl = profile.get("photoUrl")
 
-    # 🔹 Парсим полное расписание и сохраняем в файл
     try:
         lessons = parse_full_schedule(session)
         file_path = save_schedule_to_file(payload.studentId, lessons)
         msg = f"Успешная авторизация. Расписание сохранено в {file_path}."
     except HTTPException as e:
-        # если не получилось — авторизация всё равно проходит, просто без расписания
         msg = f"Успешная авторизация, но не удалось сохранить расписание: {e.detail}"
-    except Exception as e:
-        msg = f"Успешная авторизация, но произошла ошибка при сохранении расписания."
+    except Exception:
+        msg = "Успешная авторизация, но произошла ошибка при сохранении расписания."
 
     return LoginResponse(
         success=True,
         studentId=payload.studentId,
-        studentName=student_name,
+        studentName=full_name,
+        firstName=first_name,
+        lastName=last_name,
+        photoUrl=photoUrl,
         message=msg,
     )
 
@@ -567,7 +577,6 @@ def api_create_event(payload: CreateEventRequest):
     """
     Создаёт новый общий ивент (видно всем).
     """
-    # проверка, что студент настоящий
     _session = login_to_sdu(payload.studentId, payload.password)
 
     event_id = str(uuid.uuid4())
@@ -581,16 +590,14 @@ def api_create_event(payload: CreateEventRequest):
 
     return EventOut(id=event_id, **payload.event.dict())
 
+
 @app.get("/api/events", response_model=List[EventOut])
 def api_get_events():
     """
-    Отдаём всем один и тот же список общих ивентов (без расписания).
+    Отдаём всем один и тот же список общих ивентов.
     """
     docs = list(events_coll.find({}, {"_id": 0}))
-    # docs уже в правильном формате, если в них есть поля id, title, ...
     return docs
-
-
 @app.post("/api/rooms", response_model=RoomsResponse)
 def api_rooms(payload: LoginRequest):
     """
@@ -598,32 +605,30 @@ def api_rooms(payload: LoginRequest):
     Плюс сохраняем rooms.json.
     """
     session = login_to_sdu(payload.studentId, payload.password)
-    student_name = get_student_name(session) or f"Студент {payload.studentId}"
+
+    profile = parse_student_profile(session, payload.studentId)
+    full_name = profile.get("fullName") or f"Студент {payload.studentId}"
 
     rooms_info = get_free_rooms_for_now(session)
     rooms_info.studentId = payload.studentId
-    rooms_info.studentName = student_name
+    rooms_info.studentName = full_name
 
     return rooms_info
+
 
 @app.post("/api/schedule", response_model=ScheduleResponse)
 def api_schedule(payload: LoginRequest):
     """
-    Возвращает расписание КОНКРЕТНО ЭТОГО студента.
-    1. Логинимся в my.sdu.edu.kz (проверка пароля)
-    2. Ищем его расписание в Mongo по studentId
-    3. Если найдено — отдаём из Mongo
-    4. Если нет — парсим с сайта, сохраняем в Mongo и отдаём
+    Возвращает расписание конкретного студента.
+    Если есть в Mongo — берём оттуда, иначе парсим и сохраняем.
     """
     session = login_to_sdu(payload.studentId, payload.password)
 
-    # пробуем найти в Mongo
     doc = schedules_coll.find_one({"studentId": payload.studentId})
     if doc and "lessons" in doc:
         lessons = doc["lessons"]
         source = "from_db"
     else:
-        # парсим с my.sdu.edu.kz
         lessons = parse_full_schedule(session)
         now_str = datetime.now(KZT).isoformat()
         schedules_coll.update_one(
@@ -639,24 +644,23 @@ def api_schedule(payload: LoginRequest):
         )
         source = "parsed"
 
-    student_name = get_student_name(session) or f"Студент {payload.studentId}"
+    profile = parse_student_profile(session, payload.studentId)
+    full_name = profile.get("fullName") or f"Студент {payload.studentId}"
 
     return ScheduleResponse(
         success=True,
         studentId=payload.studentId,
-        studentName=student_name,
+        studentName=full_name,
         lessons=lessons,
         message=f"Расписание загружено ({'из Mongo' if source == 'from_db' else 'обновлено с my.sdu.edu.kz'})",
     )
 
+
 @app.post("/api/events/registered", response_model=RegisteredEventsResponse)
 def api_get_registered_events(payload: LoginRequest):
     """
-    Возвращает список id событий, на которые записан КОНКРЕТНЫЙ студент.
+    Возвращает список id событий, на которые записан студент.
     """
-    # при желании можно проверять логин (но это уже сделал фронт через /api/login)
-    # session = login_to_sdu(payload.studentId, payload.password)
-
     doc = registrations_coll.find_one({"studentId": payload.studentId})
     if not doc:
         return RegisteredEventsResponse(success=True, eventIds=[])
@@ -664,15 +668,13 @@ def api_get_registered_events(payload: LoginRequest):
     event_ids = doc.get("eventIds", [])
     return RegisteredEventsResponse(success=True, eventIds=event_ids)
 
+
 @app.post("/api/events/register", response_model=RegisterEventResponse)
 def api_register_event(payload: RegisterEventRequest):
     """
     Регистрация / снятие регистрации студента на событие.
     action: "register" или "unregister"
     """
-    # Можно проверять логин, чтобы не было фейков:
-    # login_to_sdu(payload.studentId, payload.password)
-
     student_id = payload.studentId
     event_id = payload.eventId
 
@@ -704,4 +706,22 @@ def api_register_event(payload: RegisterEventRequest):
         isRegistered=False,
         message="Неизвестное действие",
     )
-    
+
+@app.get("/api/profile", response_model=ProfileResponse)
+def api_profile(studentId: str):
+    """
+    Возвращает профиль студента из Mongo (students коллекция).
+    """
+    doc = students_coll.find_one({"studentId": studentId})
+    if not doc:
+        # если не нашли — можно вернуть success=False или 404
+        raise HTTPException(status_code=404, detail="Профиль студента не найден")
+
+    return ProfileResponse(
+        success=True,
+        studentId=studentId,
+        fullName=doc.get("fullName"),
+        firstName=doc.get("firstName"),
+        lastName=doc.get("lastName"),
+        photoUrl=doc.get("photoUrl"),
+    )

@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
@@ -12,13 +12,43 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Menu, Home, DoorOpen, Calendar, Map, GraduationCap, LogOut, User } from 'lucide-react';
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+type StudentProfile = {
+  success: boolean;
+  studentId: string;
+  fullName?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  photoUrl?: string | null;
+};
+
 const Navigation = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [profile, setProfile] = useState<StudentProfile | null>(null);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
   const location = useLocation();
   const navigate = useNavigate();
 
-  const studentId = localStorage.getItem('studentId') || '';
-  const studentName = localStorage.getItem('studentName') || 'Студент';
+  const storedStudentId = localStorage.getItem('studentId') || '';
+  const storedStudentName = localStorage.getItem('studentName') || 'Студент';
+
+  // Имя, которое будем показывать в UI
+  const displayName =
+    profile?.fullName ||
+    (profile?.firstName && profile?.lastName
+      ? `${profile.firstName} ${profile.lastName}`
+      : storedStudentName);
+
+  // Инициалы для fallback
+  const initials = (() => {
+    const name = displayName.trim();
+    if (!name) return (storedStudentId || '??').slice(0, 2).toUpperCase();
+    const parts = name.split(' ');
+    const letters = parts.map((p) => p[0]).slice(0, 2);
+    return letters.join('').toUpperCase();
+  })();
 
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
@@ -54,6 +84,36 @@ const Navigation = () => {
     </>
   );
 
+  // Загружаем профиль студента из бэкенда
+  useEffect(() => {
+    if (!storedStudentId) return;
+
+    const fetchProfile = async () => {
+      try {
+        setLoadingProfile(true);
+        const res = await fetch(
+          `${API_BASE_URL}/api/profile?studentId=${encodeURIComponent(storedStudentId)}`
+        );
+
+        if (!res.ok) {
+          console.error('Failed to fetch profile:', res.status);
+          return;
+        }
+
+        const data: StudentProfile = await res.json();
+        if (data.success) {
+          setProfile(data);
+        }
+      } catch (err) {
+        console.error('Error fetching profile:', err);
+      } finally {
+        setLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
+  }, [storedStudentId]);
+
   return (
     <nav className="bg-white shadow-sm border-b sticky top-0 z-50">
       <div className="container mx-auto px-4">
@@ -75,19 +135,28 @@ const Navigation = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 h-10">
                   <Avatar className="h-8 w-8">
+                    {/* Если есть фото из БД — показываем его */}
+                    {profile?.photoUrl && (
+                      <AvatarImage
+                        src={profile.photoUrl}
+                        alt={displayName}
+                        className="object-cover"
+                      />
+                    )}
+                    {/* Фолбэк — инициалы */}
                     <AvatarFallback className="bg-blue-100 text-blue-700">
-                      {studentId.slice(0, 2).toUpperCase()}
+                      {initials}
                     </AvatarFallback>
                   </Avatar>
                   <span className="hidden md:block text-sm font-medium">
-                    {studentName}
+                    {loadingProfile ? 'Загрузка...' : displayName}
                   </span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{studentName}</p>
-                  <p className="text-xs text-gray-500">ID: {studentId}</p>
+                  <p className="text-sm font-medium">{displayName}</p>
+                  <p className="text-xs text-gray-500">ID: {storedStudentId}</p>
                 </div>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="cursor-pointer">

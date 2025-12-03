@@ -62,6 +62,10 @@ const Login = () => {
         if (data.studentName) {
           localStorage.setItem('studentName', data.studentName);
         }
+        if (data.token) {
+          localStorage.setItem('sessionToken', data.token);
+        }
+
 
         navigate('/');
       } else {

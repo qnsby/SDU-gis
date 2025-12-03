@@ -80,7 +80,7 @@ export default function Index() {
       {/* Персональное приветствие */}
       <div className="text-center space-y-4">
         <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-          Добро пожаловать, {studentName.split(' ')[1] || studentName}!
+          Добро пожаловать, {studentName.split(' ')[0] || studentName}!
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
           Твой персональный помощник для навигации по SDU. 

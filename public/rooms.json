@@ -1,6 +1,6 @@
 {
-  "updated_at": "2025-11-25 16:32:53",
-  "free_count": 74,
+  "updated_at": "2025-12-03 14:59:17",
+  "free_count": 68,
   "total_count": 81,
   "rooms": [
     {
@@ -33,6 +33,10 @@
     },
     {
       "number": "D108",
+      "status": "free"
+    },
+    {
+      "number": "D116",
       "status": "free"
     },
     {
@@ -136,15 +140,7 @@
       "status": "free"
     },
     {
-      "number": "E302",
-      "status": "free"
-    },
-    {
       "number": "E303",
-      "status": "free"
-    },
-    {
-      "number": "F102",
       "status": "free"
     },
     {
@@ -153,10 +149,6 @@
     },
     {
       "number": "F105",
-      "status": "free"
-    },
-    {
-      "number": "F108",
       "status": "free"
     },
     {
@@ -172,23 +164,11 @@
       "status": "free"
     },
     {
-      "number": "F205",
-      "status": "free"
-    },
-    {
       "number": "F302",
       "status": "free"
     },
     {
-      "number": "F303",
-      "status": "free"
-    },
-    {
       "number": "F3`01",
-      "status": "free"
-    },
-    {
-      "number": "G101",
       "status": "free"
     },
     {
@@ -220,10 +200,6 @@
       "status": "free"
     },
     {
-      "number": "G301",
-      "status": "free"
-    },
-    {
       "number": "G302",
       "status": "free"
     },
@@ -240,6 +216,10 @@
       "status": "free"
     },
     {
+      "number": "H103",
+      "status": "free"
+    },
+    {
       "number": "H104",
       "status": "free"
     },
@@ -252,7 +232,7 @@
       "status": "free"
     },
     {
-      "number": "H202",
+      "number": "H203",
       "status": "free"
     },
     {
@@ -260,7 +240,15 @@
       "status": "free"
     },
     {
+      "number": "H302",
+      "status": "free"
+    },
+    {
       "number": "H303",
+      "status": "free"
+    },
+    {
+      "number": "I102",
       "status": "free"
     },
     {
@@ -280,23 +268,11 @@
       "status": "free"
     },
     {
-      "number": "I202",
-      "status": "free"
-    },
-    {
       "number": "I203",
       "status": "free"
     },
     {
-      "number": "I301",
-      "status": "free"
-    },
-    {
       "number": "I302",
-      "status": "free"
-    },
-    {
-      "number": "I303",
       "status": "free"
     }
   ]
