@@ -22,25 +22,28 @@ const App = () => (
         <Routes>
           {/* Публичный маршрут для входа */}
           <Route path="/login" element={<Login />} />
-          
+
           {/* Защищенные маршруты */}
-          <Route path="/*" element={
-            <ProtectedRoute>
-              <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
-                <Navigation />
-                <main className="container mx-auto px-4 py-8">
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/rooms" element={<Rooms />} />
-                    <Route path="/events" element={<Events />} />
-                    <Route path="/map" element={<CampusMap />} />
-                    <Route path="/profile" element={<Profile />} />
-                    <Route path="*" element={<NotFound />} />
-                  </Routes>
-                </main>
-              </div>
-            </ProtectedRoute>
-          } />
+          <Route
+            path="/*"
+            element={
+              <ProtectedRoute>
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+                  <Navigation />
+                  <main className="container mx-auto px-4 py-8">
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/rooms" element={<Rooms />} />
+                      <Route path="/events" element={<Events />} />
+                      <Route path="/map" element={<CampusMap />} />
+                      <Route path="/profile" element={<Profile />} />
+                      <Route path="*" element={<NotFound />} />
+                    </Routes>
+                  </main>
+                </div>
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </BrowserRouter>
     </TooltipProvider>

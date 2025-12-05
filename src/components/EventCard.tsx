@@ -19,7 +19,7 @@ interface EventCardProps {
     priority: 'high' | 'medium' | 'low' | 'subject';
   };
   onToggleRegister?: () => void; // 🔴 колбек из Events.tsx
-  disabled?: boolean;            // 🔴 блокировка кнопки во время запроса
+  disabled?: boolean; // 🔴 блокировка кнопки во время запроса
 }
 
 const EventCard = ({ event, onToggleRegister, disabled }: EventCardProps) => {
@@ -38,12 +38,12 @@ const EventCard = ({ event, onToggleRegister, disabled }: EventCardProps) => {
   };
 
   const categoryColors: { [key: string]: string } = {
-    'Лекция': 'bg-blue-100 text-blue-800',
-    'Семинар': 'bg-purple-100 text-purple-800',
-    'Конференция': 'bg-indigo-100 text-indigo-800',
-    'Мероприятие': 'bg-pink-100 text-pink-800',
-    'Экзамен': 'bg-red-100 text-red-800',
-    'Дедлайн': 'bg-orange-100 text-orange-800'
+    Лекция: 'bg-blue-100 text-blue-800',
+    Семинар: 'bg-purple-100 text-purple-800',
+    Конференция: 'bg-indigo-100 text-indigo-800',
+    Мероприятие: 'bg-pink-100 text-pink-800',
+    Экзамен: 'bg-red-100 text-red-800',
+    Дедлайн: 'bg-orange-100 text-orange-800',
   };
 
   return (

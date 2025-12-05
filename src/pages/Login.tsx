@@ -24,7 +24,7 @@ const Login = () => {
 
     if (!studentId || !password) {
       setError('Пожалуйста, заполните все поля');
-      setIsLoading(false);  
+      setIsLoading(false);
       return;
     }
 
@@ -66,7 +66,6 @@ const Login = () => {
           localStorage.setItem('sessionToken', data.token);
         }
 
-
         navigate('/');
       } else {
         setError(data.message || 'Не удалось войти. Попробуйте ещё раз.');
@@ -92,9 +91,7 @@ const Login = () => {
           <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             SDU`gis
           </h1>
-          <p className="text-gray-600">
-            Войдите в систему для доступа к университетским сервисам
-          </p>
+          <p className="text-gray-600">Войдите в систему для доступа к университетским сервисам</p>
         </div>
 
         {/* Форма авторизации */}

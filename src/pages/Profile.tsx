@@ -67,7 +67,7 @@ const Profile = () => {
       setErrorMsg(null);
 
       const res = await fetch(
-        `${API_BASE_URL}/api/profile?studentId=${encodeURIComponent(studentId)}`
+        `${API_BASE_URL}/api/profile?studentId=${encodeURIComponent(studentId)}`,
       );
 
       if (!res.ok) {
@@ -109,11 +109,7 @@ const Profile = () => {
           <div className="flex items-center gap-3">
             <Avatar className="h-16 w-16">
               {profile?.photoUrl && (
-                <AvatarImage
-                  src={profile.photoUrl}
-                  alt={displayName}
-                  className="object-cover"
-                />
+                <AvatarImage src={profile.photoUrl} alt={displayName} className="object-cover" />
               )}
               <AvatarFallback className="bg-blue-100 text-blue-700 text-lg">
                 {initials}
@@ -131,12 +127,7 @@ const Profile = () => {
             </div>
           </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={fetchProfile}
-            disabled={loading}
-          >
+          <Button variant="outline" size="sm" onClick={fetchProfile} disabled={loading}>
             {loading ? 'Обновление...' : 'Обновить'}
           </Button>
         </CardHeader>

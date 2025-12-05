@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { MapPin, Users, Clock, Wifi, Monitor, Calendar } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { MapPin, Users, Clock, Wifi, Monitor, Calendar } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface RoomCardProps {
   room: {
@@ -13,7 +13,7 @@ interface RoomCardProps {
     building: string;
     floor: number;
     capacity: number;
-    status: "free" | "occupied" | "soon";
+    status: 'free' | 'occupied' | 'soon';
     nextOccupied?: string;
     equipment?: string[]; // ← теперь опционально
     type: string;
@@ -21,22 +21,22 @@ interface RoomCardProps {
 }
 
 const RoomCard = ({ room }: RoomCardProps) => {
-  const statusColors: Record<RoomCardProps["room"]["status"], string> = {
-    free: "bg-green-100 text-green-800 border-green-200",
-    occupied: "bg-red-100 text-red-800 border-red-200",
-    soon: "bg-yellow-100 text-yellow-800 border-yellow-200",
+  const statusColors: Record<RoomCardProps['room']['status'], string> = {
+    free: 'bg-green-100 text-green-800 border-green-200',
+    occupied: 'bg-red-100 text-red-800 border-red-200',
+    soon: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   };
 
-  const statusLabels: Record<RoomCardProps["room"]["status"], string> = {
-    free: "Свободна",
-    occupied: "Занята",
-    soon: "Скоро занята",
+  const statusLabels: Record<RoomCardProps['room']['status'], string> = {
+    free: 'Свободна',
+    occupied: 'Занята',
+    soon: 'Скоро занята',
   };
 
   const equipmentIcons: Record<string, LucideIcon> = {
-    "Wi-Fi": Wifi,
-    "Проектор": Monitor,
-    "Компьютер": Monitor,
+    'Wi-Fi': Wifi,
+    Проектор: Monitor,
+    Компьютер: Monitor,
   };
 
   // если нет оборудования — сделаем пустой массив

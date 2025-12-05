@@ -1,7 +1,13 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Search, Filter, RefreshCw, DoorOpen } from 'lucide-react';
@@ -58,7 +64,7 @@ const Rooms = () => {
         }
 
         const formatted = roomsArray.map((r, i) => {
-          const number = typeof r === 'string' ? r : (r.number || '');
+          const number = typeof r === 'string' ? r : r.number || '';
           const building = number ? number[0] : 'Неизвестно';
 
           return {
@@ -84,9 +90,7 @@ const Rooms = () => {
   }, []);
 
   const filteredRooms = useMemo(() => {
-    return rooms.filter((room) =>
-      room.number.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    return rooms.filter((room) => room.number.toLowerCase().includes(searchTerm.toLowerCase()));
   }, [rooms, searchTerm]);
 
   return (
@@ -123,9 +127,7 @@ const Rooms = () => {
         <p>Загрузка...</p>
       ) : (
         <div>
-          <h2 className="text-xl font-semibold mb-4">
-            Найдено аудиторий: {filteredRooms.length}
-          </h2>
+          <h2 className="text-xl font-semibold mb-4">Найдено аудиторий: {filteredRooms.length}</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredRooms.map((room) => (
               <RoomCard key={room.id} room={room} />

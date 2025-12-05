@@ -49,10 +49,7 @@ export default function Index() {
       icon: DoorOpen,
       path: '/rooms',
       color: 'from-blue-500 to-cyan-500',
-      stats:
-        freeRoomsCount !== null
-          ? `${freeRoomsCount} свободных сейчас`
-          : 'Загрузка данных...'
+      stats: freeRoomsCount !== null ? `${freeRoomsCount} свободных сейчас` : 'Загрузка данных...',
     },
     {
       title: 'События университета',
@@ -60,7 +57,7 @@ export default function Index() {
       icon: Calendar,
       path: '/events',
       color: 'from-purple-500 to-pink-500',
-      stats: '8 событий на этой неделе' // пока статично
+      stats: '8 событий на этой неделе', // пока статично
     },
     {
       title: 'Карта кампуса',
@@ -68,11 +65,8 @@ export default function Index() {
       icon: Map,
       path: '/map',
       color: 'from-green-500 to-emerald-500',
-      stats:
-        totalRoomsCount !== null
-          ? `${totalRoomsCount} кабинетов на карте`
-          : 'Загрузка...'
-    }
+      stats: totalRoomsCount !== null ? `${totalRoomsCount} кабинетов на карте` : 'Загрузка...',
+    },
   ];
 
   return (
@@ -83,8 +77,8 @@ export default function Index() {
           Добро пожаловать, {studentName.split(' ')[0] || studentName}!
         </h1>
         <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Твой персональный помощник для навигации по SDU. 
-          Находи свободные кабинеты, следи за событиями и изучай карту кампуса.
+          Твой персональный помощник для навигации по SDU. Находи свободные кабинеты, следи за
+          событиями и изучай карту кампуса.
         </p>
       </div>
 
@@ -104,9 +98,7 @@ export default function Index() {
                   <Icon className="text-white" size={24} />
                 </div>
                 <CardTitle className="text-xl">{feature.title}</CardTitle>
-                <CardDescription className="text-gray-600">
-                  {feature.description}
-                </CardDescription>
+                <CardDescription className="text-gray-600">{feature.description}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center gap-2 text-sm text-gray-500">
@@ -154,17 +146,17 @@ export default function Index() {
           <div className="flex items-start gap-4">
             <div className="p-3 bg-blue-100 rounded-lg">
               <Users className="text-blue-600" size={24} />
-            </div> 
+            </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold mb-2">Интеграция с порталом SDU</h3>
               <p className="text-gray-600 mb-4">
-                Данные о свободных кабинетах обновляются в реальном времени через парсинг портала университета. 
-                Информация о событиях синхронизируется с официальным календарем мероприятий SDU.
+                Данные о свободных кабинетах обновляются в реальном времени через парсинг портала
+                университета. Информация о событиях синхронизируется с официальным календарем
+                мероприятий SDU.
               </p>
               <div className="flex items-center gap-2 text-sm text-gray-500">
                 <MapPin size={16} />
-                Последнее обновление:{' '}
-                {lastUpdated ? lastUpdated : 'данные ещё не загружены'}
+                Последнее обновление: {lastUpdated ? lastUpdated : 'данные ещё не загружены'}
               </div>
             </div>
           </div>

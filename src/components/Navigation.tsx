@@ -3,12 +3,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Menu, Home, DoorOpen, Calendar, Map, GraduationCap, LogOut, User } from 'lucide-react';
 
@@ -92,7 +92,7 @@ const Navigation = () => {
       try {
         setLoadingProfile(true);
         const res = await fetch(
-          `${API_BASE_URL}/api/profile?studentId=${encodeURIComponent(storedStudentId)}`
+          `${API_BASE_URL}/api/profile?studentId=${encodeURIComponent(storedStudentId)}`,
         );
 
         if (!res.ok) {
@@ -159,16 +159,13 @@ const Navigation = () => {
                   <p className="text-xs text-gray-500">ID: {storedStudentId}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  className="cursor-pointer"
-                  onClick={() => navigate('/profile')}
-                >
+                <DropdownMenuItem className="cursor-pointer" onClick={() => navigate('/profile')}>
                   <User className="mr-2 h-4 w-4" />
                   Профиль
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   className="cursor-pointer text-red-600 focus:text-red-600"
                   onClick={handleLogout}
                 >
@@ -189,8 +186,8 @@ const Navigation = () => {
                 <div className="flex flex-col gap-4 mt-8">
                   <NavLinks mobile />
                   <div className="border-t pt-4">
-                    <Button 
-                      variant="ghost" 
+                    <Button
+                      variant="ghost"
                       className="w-full justify-start text-red-600 hover:text-red-600 hover:bg-red-50"
                       onClick={handleLogout}
                     >

@@ -1,7 +1,13 @@
 import { useState, useMemo, useEffect, FormEvent } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,15 +15,7 @@ import { Search, Filter, Calendar as CalendarIcon, Plus, Bell } from 'lucide-rea
 import EventCard from '@/components/EventCard';
 
 function getTodayWeekdayRu(): string {
-  const days = [
-    'Воскресенье',
-    'Понедельник',
-    'Вторник',
-    'Среда',
-    'Четверг',
-    'Пятница',
-    'Суббота',
-  ];
+  const days = ['Воскресенье', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота'];
   const todayIndex = new Date().getDay(); // 0 = Вс, 1 = Пн ...
   return days[todayIndex];
 }
@@ -41,11 +39,11 @@ export type UniversityEvent = {
 };
 
 type ScheduleLesson = {
-  day: string;     // Понедельник
-  time: string;    // 08:30-09:20
-  course: string;  // INF 321
+  day: string; // Понедельник
+  time: string; // 08:30-09:20
+  course: string; // INF 321
   teacher: string; // Bakhtiyor Meraliyev
-  room: string;    // H 102
+  room: string; // H 102
 };
 
 type ScheduleResponse = {
@@ -253,10 +251,10 @@ const Events = () => {
         throw new Error(data.message || 'Ошибка при изменении регистрации');
       }
 
-      setRegisteredIds(prev =>
+      setRegisteredIds((prev) =>
         data.isRegistered
           ? Array.from(new Set([...prev, eventId]))
-          : prev.filter(id => id !== eventId)
+          : prev.filter((id) => id !== eventId),
       );
     } catch (err: any) {
       console.error(err);
@@ -269,15 +267,13 @@ const Events = () => {
   // все события = расписание (личные) + общие из Mongo
   const allEvents = useMemo(
     () => [...scheduleEvents, ...globalEvents],
-    [scheduleEvents, globalEvents]
+    [scheduleEvents, globalEvents],
   );
 
   // Обработчик изменения полей формы (создание нового ОБЩЕГО события)
-  const handleFormChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setForm(prev => ({ ...prev, [name]: value }));
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   // 🔴 Добавление нового ОБЩЕГО события → POST /api/events
@@ -324,7 +320,7 @@ const Events = () => {
 
       const created: UniversityEvent = await res.json();
       // добавляем в список общих ивентов
-      setGlobalEvents(prev => [created, ...prev]);
+      setGlobalEvents((prev) => [created, ...prev]);
 
       setForm(emptyForm);
       setIsAddOpen(false);
@@ -339,48 +335,38 @@ const Events = () => {
 
     // Фильтр по табам
     if (activeTab === 'registered') {
-      list = list.filter(
-        event =>
-          event.isRegistered ||
-          registeredIds.includes(event.id)
-      );
+      list = list.filter((event) => event.isRegistered || registeredIds.includes(event.id));
     } else if (activeTab === 'upcoming') {
       const today = getTodayWeekdayRu().toLowerCase();
 
-      list = list.filter(event => {
+      list = list.filter((event) => {
         const d = (event.date || '').toLowerCase().trim();
-        return (
-          d === today ||
-          d.startsWith(today) ||
-          d.includes(today)
-        );
+        return d === today || d.startsWith(today) || d.includes(today);
       });
     }
 
     // Остальные фильтры (поиск, категория, приоритет)
-    return list.filter(event => {
+    return list.filter((event) => {
       const matchesSearch =
         event.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
         event.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
         event.organizer.toLowerCase().includes(searchTerm.toLowerCase());
 
-      const matchesCategory =
-        categoryFilter === 'all' || event.category === categoryFilter;
+      const matchesCategory = categoryFilter === 'all' || event.category === categoryFilter;
 
-      const matchesPriority =
-        priorityFilter === 'all' || event.priority === priorityFilter;
+      const matchesPriority = priorityFilter === 'all' || event.priority === priorityFilter;
 
       return matchesSearch && matchesCategory && matchesPriority;
     });
   }, [allEvents, searchTerm, categoryFilter, priorityFilter, activeTab, registeredIds]);
 
-  const categories = [...new Set(allEvents.map(event => event.category))];
+  const categories = [...new Set(allEvents.map((event) => event.category))];
 
   const priorityCounts = {
-    high: allEvents.filter(e => e.priority === 'high').length,
-    medium: allEvents.filter(e => e.priority === 'medium').length,
-    low: allEvents.filter(e => e.priority === 'low').length,
-    subject: allEvents.filter(e => e.priority === "subject").length,
+    high: allEvents.filter((e) => e.priority === 'high').length,
+    medium: allEvents.filter((e) => e.priority === 'medium').length,
+    low: allEvents.filter((e) => e.priority === 'low').length,
+    subject: allEvents.filter((e) => e.priority === 'subject').length,
   };
 
   return (
@@ -396,25 +382,13 @@ const Events = () => {
             Актуальные мероприятия, дедлайны и твои пары как события
           </p>
           {scheduleLoading && (
-            <p className="text-xs text-gray-500 mt-1">
-              Загружаем расписание с сервера...
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Загружаем расписание с сервера...</p>
           )}
-          {scheduleError && (
-            <p className="text-xs text-red-500 mt-1">
-              {scheduleError}
-            </p>
-          )}
+          {scheduleError && <p className="text-xs text-red-500 mt-1">{scheduleError}</p>}
           {eventsLoading && (
-            <p className="text-xs text-gray-500 mt-1">
-              Загружаем общие события...
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Загружаем общие события...</p>
           )}
-          {eventsError && (
-            <p className="text-xs text-red-500 mt-1">
-              {eventsError}
-            </p>
-          )}
+          {eventsError && <p className="text-xs text-red-500 mt-1">{eventsError}</p>}
         </div>
         <div className="flex gap-2">
           <Button variant="outline" className="gap-2">
@@ -491,8 +465,10 @@ const Events = () => {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Все категории</SelectItem>
-                    {categories.map(category => (
-                      <SelectItem key={category} value={category}>{category}</SelectItem>
+                    {categories.map((category) => (
+                      <SelectItem key={category} value={category}>
+                        {category}
+                      </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
@@ -517,27 +493,20 @@ const Events = () => {
               {(searchTerm || categoryFilter !== 'all' || priorityFilter !== 'all') && (
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-600">Активные фильтры:</span>
-                  {searchTerm && (
-                    <Badge variant="secondary">
-                      Поиск: {searchTerm}
-                    </Badge>
-                  )}
+                  {searchTerm && <Badge variant="secondary">Поиск: {searchTerm}</Badge>}
                   {categoryFilter !== 'all' && (
-                    <Badge variant="secondary">
-                      Категория: {categoryFilter}
-                    </Badge>
+                    <Badge variant="secondary">Категория: {categoryFilter}</Badge>
                   )}
                   {priorityFilter !== 'all' && (
                     <Badge variant="secondary">
-                      Приоритет: {
-                        priorityFilter === 'high'
-                          ? 'Важные'
-                          : priorityFilter === 'medium'
+                      Приоритет:{' '}
+                      {priorityFilter === 'high'
+                        ? 'Важные'
+                        : priorityFilter === 'medium'
                           ? 'Обычные'
                           : priorityFilter === 'low'
-                          ? 'Информационные'
-                          : 'Пары'
-                      }
+                            ? 'Информационные'
+                            : 'Пары'}
                     </Badge>
                   )}
                   <Button
@@ -574,14 +543,13 @@ const Events = () => {
                   <p className="text-gray-600">
                     {activeTab === 'registered'
                       ? 'Вы пока не записались ни на одно событие'
-                      : 'Попробуйте изменить параметры поиска или фильтры'
-                    }
+                      : 'Попробуйте изменить параметры поиска или фильтры'}
                   </p>
                 </CardContent>
               </Card>
             ) : (
               <div className="grid md:grid-cols-2 gap-6">
-                {filteredEvents.map(event => {
+                {filteredEvents.map((event) => {
                   const isReg = event.isRegistered || registeredIds.includes(event.id);
                   return (
                     <EventCard
@@ -687,7 +655,7 @@ const Events = () => {
                     className="mt-1 w-full border rounded-md px-3 py-2 text-sm"
                     value={form.priority}
                     onChange={(e) =>
-                      setForm(prev => ({ ...prev, priority: e.target.value as Priority }))
+                      setForm((prev) => ({ ...prev, priority: e.target.value as Priority }))
                     }
                   >
                     <option value="high">Важное</option>
@@ -708,9 +676,7 @@ const Events = () => {
                 >
                   Отмена
                 </Button>
-                <Button type="submit">
-                  Сохранить
-                </Button>
+                <Button type="submit">Сохранить</Button>
               </div>
             </form>
           </div>
