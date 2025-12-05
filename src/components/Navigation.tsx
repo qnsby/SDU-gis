@@ -159,10 +159,14 @@ const Navigation = () => {
                   <p className="text-xs text-gray-500">ID: {storedStudentId}</p>
                 </div>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer">
+                <DropdownMenuItem 
+                  className="cursor-pointer"
+                  onClick={() => navigate('/profile')}
+                >
                   <User className="mr-2 h-4 w-4" />
                   Профиль
                 </DropdownMenuItem>
+
                 <DropdownMenuSeparator />
                 <DropdownMenuItem 
                   className="cursor-pointer text-red-600 focus:text-red-600"

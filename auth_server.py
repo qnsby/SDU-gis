@@ -44,6 +44,8 @@ warnings.filterwarnings("ignore", "Unverified HTTPS request")
 LOGIN_URL = "https://my.sdu.edu.kz/loginAuth.php"
 SCHEDULE_URL = "https://my.sdu.edu.kz/index.php"
 INDEX_URL = "https://my.sdu.edu.kz/index.php"
+TRANSCRIPT_URL = "https://my.sdu.edu.kz/index.php?mod=transkript"
+
 
 # Пути для файлов
 ROOMS_JSON_PATH = r"C:\Users\HP\Desktop\d1sk\PM\site\public\rooms.json"
@@ -138,6 +140,9 @@ class ProfileResponse(BaseModel):
     firstName: Optional[str]
     lastName: Optional[str]
     photoUrl: Optional[str]
+    email: Optional[str]
+    birthDate: Optional[str]
+    grandGpa: Optional[str] = None
 
 # ------------------------------------------------------
 #  Вспомогательные функции
@@ -292,13 +297,13 @@ def save_schedule_to_file(student_id: str, lessons: List[Dict]) -> str:
     return file_path
 def parse_student_profile(session: requests.Session, student_id: str) -> Dict[str, Optional[str]]:
     """
-    Парсим главную страницу my.sdu.edu.kz и вытаскиваем:
-    - fullName    (Dias Konysbay)
-    - firstName   (Dias)
-    - lastName    (Konysbay)
-    - photoUrl    (https://my.sdu.edu.kz/stud_photo.php?...)
-    Плюс сохраняем это в Mongo (students_coll).
+    Парсим:
+    - главную страницу my.sdu.edu.kz (ФИО, фото, email, дата рождения)
+    - страницу транскрипта (?mod=transkript) для Grand GPA
+    И сохраняем всё в Mongo (students_coll).
     """
+
+    # ---------- 1. Главная страница ----------
     try:
         resp = session.get(INDEX_URL, verify=False, timeout=10)
     except requests.exceptions.RequestException:
@@ -308,12 +313,17 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
             "firstName": None,
             "lastName": None,
             "photoUrl": None,
+            "email": None,
+            "birthDate": None,
+            "grandGpa": None,
         }
         return profile
 
     soup = BeautifulSoup(resp.text, "html.parser")
 
-    # --- ФИО: ищем строку таблицы, где 'Fullname :'
+    # -----------------------------
+    # FULL NAME (полное имя)
+    # -----------------------------
     full_name = None
     fullname_label_td = soup.find(
         "td",
@@ -335,23 +345,116 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
         else:
             first_name = full_name
 
-    # --- Фото: img src="stud_photo.php?..."
+    # -----------------------------
+    # PHOTO URL (фото студента)
+    # -----------------------------
     photo_img = soup.find(
         "img",
         src=lambda s: isinstance(s, str) and s.startswith("stud_photo.php")
     )
+
     photoUrl = None
     if photo_img and photo_img.get("src"):
         photoUrl = urljoin(INDEX_URL, photo_img["src"])
 
+    # -----------------------------
+    # EMAIL
+    # -----------------------------
+    email = None
+    email_td = soup.find(
+        "td",
+        string=lambda s: isinstance(s, str) and "Email :" in s
+    )
+    if email_td:
+        value_td = email_td.find_next_sibling("td")
+        if value_td:
+            b_tag = value_td.find("b")
+            email = (b_tag.get_text(strip=True)
+                     if b_tag else value_td.get_text(strip=True))
+
+    # -----------------------------
+    # BIRTH DATE
+    # -----------------------------
+    birth_date = None
+    birth_td = soup.find(
+        "td",
+        string=lambda s: isinstance(s, str) and "Birth date :" in s
+    )
+    if birth_td:
+        value_td = birth_td.find_next_sibling("td")
+        if value_td:
+            b_tag = value_td.find("b")
+            birth_date = (b_tag.get_text(strip=True)
+                          if b_tag else value_td.get_text(strip=True))
+
+    # ---------- 2. Страница транскрипта (Grand GPA) ----------
+    grand_gpa = None
+    try:
+        transcript_resp = session.get(
+            "https://my.sdu.edu.kz/index.php?mod=transkript",
+            verify=False,
+            timeout=10,
+        )
+        if transcript_resp.ok:
+            tsoup = BeautifulSoup(transcript_resp.text, "html.parser")
+
+            # --------- Варианты текста для поиска ---------
+            GPA_LABELS = [
+                "Grand GPA",                 # English
+                "Жалпы орталама балл",       # Kazakh (орталама)
+                "Жалпы орташа балл",         # Kazakh (орташа)
+            ]
+
+            # --------- 1) Поиск в таблицах <td> ---------
+            gpa_label_td = tsoup.find(
+                "td",
+                string=lambda s: isinstance(s, str)
+                and any(label in s for label in GPA_LABELS)
+            )
+
+            if gpa_label_td:
+                val_td = gpa_label_td.find_next_sibling("td")
+                if val_td:
+                    grand_gpa = val_td.get_text(strip=True)
+
+            # --------- 2) Если всё ещё не нашли — regex по всей странице ---------
+            if not grand_gpa:
+                text = tsoup.get_text(" ", strip=True)
+
+                # ищем английский вариант
+                m = re.search(r"Grand GPA\s*[:\-]?\s*([0-9]\.\d{1,3})", text)
+                if not m:
+                    # ищем казахский вариант
+                    m = re.search(
+                        r"(Жалпы\s+орталама\s+балл|Жалпы\s+орташа\s+балл)\s*[:\-]?\s*([0-9]\.\d{1,3})",
+                        text
+                    )
+                    if m:
+                        grand_gpa = m.group(2)
+                else:
+                    grand_gpa = m.group(1)
+
+    except requests.exceptions.RequestException:
+        pass
+
+
+    # -----------------------------
+    # Формируем документ профиля
+    # -----------------------------
     profile = {
         "studentId": student_id,
         "fullName": full_name,
         "firstName": first_name,
         "lastName": last_name,
         "photoUrl": photoUrl,
+        "email": email,
+        "birthDate": birth_date,
+        "grandGpa": grand_gpa,
     }
 
+    # -----------------------------
+    # Сохраняем в Mongo
+    # -----------------------------
     profile["updatedAt"] = datetime.now(KZT).isoformat()
     students_coll.update_one(
         {"studentId": student_id},
@@ -724,4 +827,7 @@ def api_profile(studentId: str):
         firstName=doc.get("firstName"),
         lastName=doc.get("lastName"),
         photoUrl=doc.get("photoUrl"),
+        email=doc.get("email"),
+        birthDate=doc.get("birthDate"),
+        grandGpa=doc.get("grandGpa"),
     )

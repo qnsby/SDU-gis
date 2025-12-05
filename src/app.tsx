@@ -10,6 +10,7 @@ import CampusMap from './pages/CampusMap';
 import NotFound from './pages/NotFound';
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
+import Profile from './pages/Profile';
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
                     <Route path="/rooms" element={<Rooms />} />
                     <Route path="/events" element={<Events />} />
                     <Route path="/map" element={<CampusMap />} />
+                    <Route path="/profile" element={<Profile />} />
                     <Route path="*" element={<NotFound />} />
                   </Routes>
                 </main>
