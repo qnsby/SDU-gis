@@ -177,7 +177,7 @@ const Profile = () => {
                   <p className="text-xs uppercase text-gray-400">Email</p>
                   <p className="text-sm font-medium flex items-center gap-2">
                     <Mail className="h-4 w-4 text-gray-400" />
-                    <span className="italic">{profile?.email}</span>
+                    {profile?.email}
                   </p>
                 </div>
 
@@ -185,16 +185,14 @@ const Profile = () => {
                   <p className="text-xs uppercase text-gray-400">Grand GPA</p>
                   <p className="text-sm font-medium flex items-center gap-2">
                     <GraduationCap className="h-4 w-4 text-gray-400" />
-                    <span className="italic">
-                      {profile?.grandGpa}
-                    </span>
+                    {profile?.grandGpa}
                   </p>
                 </div>
                 <div className="space-y-1">
                   <p className="text-xs uppercase text-gray-400">Дата рождения</p>
                   <p className="text-sm font-medium flex items-center gap-2">
                     <Cake className="h-4 w-4 text-gray-400" />
-                    <span className="italic">{profile?.birthDate}</span>
+                    {profile?.birthDate}
                   </p>
                 </div>
               </div>

@@ -16,7 +16,7 @@ interface EventCardProps {
     attendees?: number;
     maxAttendees?: number;
     isRegistered?: boolean;
-    priority: 'high' | 'medium' | 'low';
+    priority: 'high' | 'medium' | 'low' | 'subject';
   };
   onToggleRegister?: () => void; // 🔴 колбек из Events.tsx
   disabled?: boolean;            // 🔴 блокировка кнопки во время запроса
@@ -26,13 +26,15 @@ const EventCard = ({ event, onToggleRegister, disabled }: EventCardProps) => {
   const priorityColors = {
     high: 'bg-red-100 text-red-800 border-red-200',
     medium: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    low: 'bg-green-100 text-green-800 border-green-200'
+    low: 'bg-green-100 text-green-800 border-green-200',
+    pair: 'bg-blue-100 text-blue-800 border-blue-200',
   };
 
   const priorityLabels = {
     high: 'Важное',
     medium: 'Обычное',
-    low: 'Информация'
+    low: 'Информация',
+    subject: 'Пара',
   };
 
   const categoryColors: { [key: string]: string } = {

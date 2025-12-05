@@ -1,6 +1,6 @@
 {
-  "updated_at": "2025-12-05 14:54:36",
-  "free_count": 70,
+  "updated_at": "2025-12-05 16:44:19",
+  "free_count": 74,
   "total_count": 81,
   "rooms": [
     {
@@ -53,6 +53,10 @@
     },
     {
       "number": "D203",
+      "status": "free"
+    },
+    {
+      "number": "D204",
       "status": "free"
     },
     {
@@ -112,10 +116,6 @@
       "status": "free"
     },
     {
-      "number": "E117",
-      "status": "free"
-    },
-    {
       "number": "E201",
       "status": "free"
     },
@@ -144,6 +144,10 @@
       "status": "free"
     },
     {
+      "number": "F102",
+      "status": "free"
+    },
+    {
       "number": "F103",
       "status": "free"
     },
@@ -160,11 +164,11 @@
       "status": "free"
     },
     {
-      "number": "F203",
+      "number": "F202",
       "status": "free"
     },
     {
-      "number": "F205",
+      "number": "F203",
       "status": "free"
     },
     {
@@ -212,6 +216,14 @@
       "status": "free"
     },
     {
+      "number": "G301",
+      "status": "free"
+    },
+    {
+      "number": "G302",
+      "status": "free"
+    },
+    {
       "number": "G303",
       "status": "free"
     },
@@ -256,7 +268,7 @@
       "status": "free"
     },
     {
-      "number": "I103",
+      "number": "I101",
       "status": "free"
     },
     {
@@ -272,15 +284,19 @@
       "status": "free"
     },
     {
-      "number": "I202",
-      "status": "free"
-    },
-    {
       "number": "I203",
       "status": "free"
     },
     {
+      "number": "I301",
+      "status": "free"
+    },
+    {
       "number": "I302",
+      "status": "free"
+    },
+    {
+      "number": "I303",
       "status": "free"
     }
   ]

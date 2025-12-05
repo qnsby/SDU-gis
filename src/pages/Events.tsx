@@ -23,7 +23,7 @@ function getTodayWeekdayRu(): string {
 }
 
 // 👇 Тип события (совпадает с тем, что ждёт EventCard)
-type Priority = 'high' | 'medium' | 'low';
+type Priority = 'high' | 'medium' | 'low' | 'subject';
 
 export type UniversityEvent = {
   id: string;
@@ -68,7 +68,6 @@ type RegisterEventResponse = {
   message: string;
 };
 
-// 🧠 маппинг уроков расписания → события для EventCard
 function mapScheduleToEvents(lessons: ScheduleLesson[]): UniversityEvent[] {
   return lessons.map((lesson, idx) => ({
     id: `schedule-${idx}-${lesson.day}-${lesson.time}-${lesson.course}-${lesson.room}`,
@@ -79,8 +78,8 @@ function mapScheduleToEvents(lessons: ScheduleLesson[]): UniversityEvent[] {
     location: lesson.room,
     organizer: lesson.teacher,
     category: 'Пара',
-    priority: 'medium',
-    isRegistered: true, // пары всегда считаем "моими"
+    priority: 'subject' as Priority,
+    isRegistered: true,
   }));
 }
 
@@ -381,6 +380,7 @@ const Events = () => {
     high: allEvents.filter(e => e.priority === 'high').length,
     medium: allEvents.filter(e => e.priority === 'medium').length,
     low: allEvents.filter(e => e.priority === 'low').length,
+    subject: allEvents.filter(e => e.priority === "subject").length,
   };
 
   return (
@@ -429,7 +429,7 @@ const Events = () => {
       </div>
 
       {/* Статистика */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-red-600">{priorityCounts.high}</div>
@@ -446,6 +446,12 @@ const Events = () => {
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{priorityCounts.low}</div>
             <div className="text-sm text-gray-600">Информационных</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <div className="text-2xl font-bold text-green-600">{priorityCounts.subject}</div>
+            <div className="text-sm text-gray-600">Пар</div>
           </CardContent>
         </Card>
       </div>
@@ -503,6 +509,7 @@ const Events = () => {
                     <SelectItem value="high">Важные</SelectItem>
                     <SelectItem value="medium">Обычные</SelectItem>
                     <SelectItem value="low">Информационные</SelectItem>
+                    <SelectItem value="subject">Пары</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -522,7 +529,15 @@ const Events = () => {
                   )}
                   {priorityFilter !== 'all' && (
                     <Badge variant="secondary">
-                      Приоритет: {priorityFilter === 'high' ? 'Важные' : priorityFilter === 'medium' ? 'Обычные' : 'Информационные'}
+                      Приоритет: {
+                        priorityFilter === 'high'
+                          ? 'Важные'
+                          : priorityFilter === 'medium'
+                          ? 'Обычные'
+                          : priorityFilter === 'low'
+                          ? 'Информационные'
+                          : 'Пары'
+                      }
                     </Badge>
                   )}
                   <Button
