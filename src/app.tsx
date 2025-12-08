@@ -11,6 +11,7 @@ import NotFound from './pages/NotFound';
 import Navigation from './components/Navigation';
 import ProtectedRoute from './components/ProtectedRoute';
 import Profile from './pages/Profile';
+import ChatAssistant from './components/ChatAssistant'; // 👈 добавили
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,9 @@ const App = () => (
                       <Route path="*" element={<NotFound />} />
                     </Routes>
                   </main>
+
+                  {/* 👇 Всегда на всех защищённых страницах */}
+                  <ChatAssistant />
                 </div>
               </ProtectedRoute>
             }
