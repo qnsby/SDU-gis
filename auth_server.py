@@ -12,6 +12,7 @@ import fake_useragent
 import pytz
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
+from dotenv import load_dotenv
 
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,12 +20,17 @@ from pydantic import BaseModel
 
 from pymongo import MongoClient
 
+# Загружаем переменные из .env файла
+load_dotenv()
+
 # ------------------------------------------------------
 #  Общие настройки
 # ------------------------------------------------------
 
-MONGO_URI = "mongodb+srv://230103235_db_user:diaskons@gistar.mbnl82j.mongodb.net/"
-MONGO_DB_NAME = "sdu_gis"
+MONGO_URI = os.getenv(
+    "MONGO_URI", "mongodb+srv://230103235_db_user:diaskon@gistar.mbnl82j.mongodb.net/"
+)
+MONGO_DB_NAME = os.getenv("MONGO_DB_NAME", "sdu_gis")
 
 mongo_client = MongoClient(MONGO_URI)
 mongo_db = mongo_client[MONGO_DB_NAME]
@@ -41,15 +47,18 @@ students_coll.create_index("studentId", unique=True)
 KZT = pytz.timezone("Asia/Almaty")
 warnings.filterwarnings("ignore", "Unverified HTTPS request")
 
-LOGIN_URL = "https://my.sdu.edu.kz/loginAuth.php"
-SCHEDULE_URL = "https://my.sdu.edu.kz/index.php"
-INDEX_URL = "https://my.sdu.edu.kz/index.php"
-TRANSCRIPT_URL = "https://my.sdu.edu.kz/index.php?mod=transkript"
+LOGIN_URL = os.getenv("LOGIN_URL", "https://my.sdu.edu.kz/loginAuth.php")
+SCHEDULE_URL = os.getenv("SCHEDULE_URL", "https://my.sdu.edu.kz/index.php")
+INDEX_URL = os.getenv("INDEX_URL", "https://my.sdu.edu.kz/index.php")
+TRANSCRIPT_URL = os.getenv(
+    "TRANSCRIPT_URL", "https://my.sdu.edu.kz/index.php?mod=transkript"
+)
 
 
-# Пути для файлов
-ROOMS_JSON_PATH = r"C:\Users\HP\Desktop\d1sk\PM\site\public\rooms.json"
-SCHEDULES_DIR = r"C:\Users\HP\Desktop\d1sk\PM\site\public\schedules"
+# Пути для файлов (относительно папки проекта)
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ROOMS_JSON_PATH = os.path.join(_BASE_DIR, "public", "rooms.json")
+SCHEDULES_DIR = os.path.join(_BASE_DIR, "public", "schedules")
 os.makedirs(SCHEDULES_DIR, exist_ok=True)
 
 # ------------------------------------------------------
@@ -57,19 +66,81 @@ os.makedirs(SCHEDULES_DIR, exist_ok=True)
 # ------------------------------------------------------
 
 ALL_ROOMS: Set[str] = {
-    "D101", "D102", "D103", "D104", "D105", "D116", "D117",
-    "D201", "D202", "D203", "D217", "D218", "D301", "D302", "D303",
-    "E101", "E102", "E103", "E104", "E105", "E117",
-    "E201", "E202", "E203", "E217", "E301", "E302", "E303",
-    "F102", "F103", "F104", "F105", "F108",
-    "F201", "F202", "F203", "F205", "F301", "F302", "F303",
-    "G101", "G102", "G103", "G104", "G105",
-    "G201", "G202", "G203", "G301", "G302", "G303",
-    "H101", "H102", "H103", "H104", "H105",
-    "H201", "H202", "H203", "H301", "H302", "H303",
-    "I101", "I102", "I103", "I104", "I105",
-    "I201", "I202", "I203", "I301", "I302", "I303",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D116",
+    "D117",
+    "D201",
+    "D202",
+    "D203",
+    "D217",
+    "D218",
+    "D301",
+    "D302",
+    "D303",
+    "E101",
+    "E102",
+    "E103",
+    "E104",
+    "E105",
+    "E117",
+    "E201",
+    "E202",
+    "E203",
+    "E217",
+    "E301",
+    "E302",
+    "E303",
+    "F102",
+    "F103",
+    "F104",
+    "F105",
+    "F108",
+    "F201",
+    "F202",
+    "F203",
+    "F205",
+    "F301",
+    "F302",
+    "F303",
+    "G101",
+    "G102",
+    "G103",
+    "G104",
+    "G105",
+    "G201",
+    "G202",
+    "G203",
+    "G301",
+    "G302",
+    "G303",
+    "H101",
+    "H102",
+    "H103",
+    "H104",
+    "H105",
+    "H201",
+    "H202",
+    "H203",
+    "H301",
+    "H302",
+    "H303",
+    "I101",
+    "I102",
+    "I103",
+    "I104",
+    "I105",
+    "I201",
+    "I202",
+    "I203",
+    "I301",
+    "I302",
+    "I303",
 }
+
 
 # ------------------------------------------------------
 #  Модели запросов / ответов для API
@@ -83,11 +154,17 @@ class EventIn(BaseModel):
     organizer: str
     category: str
     priority: Literal["high", "medium", "low"]
+
+
 class EventOut(EventIn):
     id: str
+
+
 class LoginRequest(BaseModel):
     studentId: str
     password: str
+
+
 class LoginResponse(BaseModel):
     success: bool
     studentId: Optional[str]
@@ -96,6 +173,8 @@ class LoginResponse(BaseModel):
     lastName: Optional[str]
     photoUrl: Optional[str]
     message: str
+
+
 class RoomsResponse(BaseModel):
     success: bool
     studentId: Optional[str]
@@ -105,34 +184,48 @@ class RoomsResponse(BaseModel):
     nowTime: Optional[str]
     freeRooms: List[Dict[str, str]]
     message: str
+
+
 class CreateEventRequest(BaseModel):
     studentId: str
     password: str
     event: EventIn
+
+
 class ScheduleLesson(BaseModel):
-    day: str          # Понедельник
-    time: str         # 08:30-09:20
-    course: str       # INF 321
-    teacher: str      # Bakhtiyor Meraliyev
-    room: str         # H 102 / D217 / VR 21 и т.д.
+    day: str  # Понедельник
+    time: str  # 08:30-09:20
+    course: str  # INF 321
+    teacher: str  # Bakhtiyor Meraliyev
+    room: str  # H 102 / D217 / VR 21 и т.д.
+
+
 class ScheduleResponse(BaseModel):
     success: bool
     studentId: Optional[str]
     studentName: Optional[str]
     lessons: List[ScheduleLesson]
     message: str
+
+
 class RegisterEventRequest(BaseModel):
     studentId: str
     password: str
     eventId: str
     action: Literal["register", "unregister"]
+
+
 class RegisterEventResponse(BaseModel):
     success: bool
     isRegistered: bool
     message: str
+
+
 class RegisteredEventsResponse(BaseModel):
     success: bool
     eventIds: List[str]
+
+
 class ProfileResponse(BaseModel):
     success: bool
     studentId: str
@@ -144,19 +237,25 @@ class ProfileResponse(BaseModel):
     birthDate: Optional[str]
     grandGpa: Optional[str] = None
 
+
 # ------------------------------------------------------
 #  Вспомогательные функции
 # ------------------------------------------------------
+
 
 def create_session() -> requests.Session:
     """Создаём сессию с рандомным User-Agent."""
     session = requests.Session()
     user_agent = fake_useragent.UserAgent().random
-    session.headers.update({
-        "User-Agent": user_agent,
-        "Content-Type": "application/x-www-form-urlencoded",
-    })
+    session.headers.update(
+        {
+            "User-Agent": user_agent,
+            "Content-Type": "application/x-www-form-urlencoded",
+        }
+    )
     return session
+
+
 def login_to_sdu(student_id: str, password: str) -> requests.Session:
     """Логинимся в my.sdu.edu.kz и возвращаем сессию."""
     session = create_session()
@@ -201,6 +300,8 @@ def login_to_sdu(student_id: str, password: str) -> requests.Session:
         raise HTTPException(status_code=401, detail="Неверный ID или пароль")
 
     return session
+
+
 def parse_full_schedule(session: requests.Session) -> List[Dict]:
     """
     Полностью парсим расписание студента и возвращаем список lessons.
@@ -219,11 +320,13 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
         "action": "showSchedule",
         "year": "2025",
         "term": "1",
-        "type": "I",      # или "S", как нужно
+        "type": "I",  # или "S", как нужно
         "details": "0",
     }
 
-    schedule_response = session.post(SCHEDULE_URL, data=schedule_params, verify=False, timeout=10)
+    schedule_response = session.post(
+        SCHEDULE_URL, data=schedule_params, verify=False, timeout=10
+    )
     soup = BeautifulSoup(schedule_response.text, "html.parser")
 
     schedule_table = soup.find("table", class_="clTbl")
@@ -234,8 +337,12 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
     day_cells = header_row.find_all("td", class_="ctg")[1:]
 
     day_mapping = {
-        "Mo": "Понедельник", "Tu": "Вторник", "We": "Среда",
-        "Th": "Четверг", "Fr": "Пятница", "Sa": "Суббота"
+        "Mo": "Понедельник",
+        "Tu": "Вторник",
+        "We": "Среда",
+        "Th": "Четверг",
+        "Fr": "Пятница",
+        "Sa": "Суббота",
     }
     days_of_week = [
         day_mapping.get(c.find("span").text.strip(), c.find("span").text.strip())
@@ -253,8 +360,8 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
         time_cell = cells[0]
         time_spans = time_cell.find_all("span")
         start_time = time_spans[0].text.strip() if len(time_spans) > 0 else ""
-        end_time   = time_spans[1].text.strip() if len(time_spans) > 1 else ""
-        time_slot  = f"{start_time}-{end_time}"
+        end_time = time_spans[1].text.strip() if len(time_spans) > 1 else ""
+        time_slot = f"{start_time}-{end_time}"
 
         lesson_cells = cells[1:]
 
@@ -267,7 +374,7 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
             course_code = lesson_data.text.strip()
 
             teacher_img = lesson_cell.find("img", src="images/stud_icon.png")
-            teacher = teacher_img.get('title', 'N/A') if teacher_img else 'N/A'
+            teacher = teacher_img.get("title", "N/A") if teacher_img else "N/A"
 
             room_span = lesson_cell.find_all("span")[-1]
             room_code = room_span.text.strip() if room_span else "N/A"
@@ -283,6 +390,8 @@ def parse_full_schedule(session: requests.Session) -> List[Dict]:
             )
 
     return lessons
+
+
 def save_schedule_to_file(student_id: str, lessons: List[Dict]) -> str:
     """
     Сохраняем расписание в JSON-файл вида 230103235_schedule.json.
@@ -295,7 +404,11 @@ def save_schedule_to_file(student_id: str, lessons: List[Dict]) -> str:
         json.dump(lessons, f, ensure_ascii=False, indent=2)
 
     return file_path
-def parse_student_profile(session: requests.Session, student_id: str) -> Dict[str, Optional[str]]:
+
+
+def parse_student_profile(
+    session: requests.Session, student_id: str
+) -> Dict[str, Optional[str]]:
     """
     Парсим:
     - главную страницу my.sdu.edu.kz (ФИО, фото, email, дата рождения)
@@ -326,15 +439,15 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
     # -----------------------------
     full_name = None
     fullname_label_td = soup.find(
-        "td",
-        string=lambda s: isinstance(s, str) and "Fullname :" in s
+        "td", string=lambda s: isinstance(s, str) and "Fullname :" in s
     )
     if fullname_label_td:
         value_td = fullname_label_td.find_next_sibling("td")
         if value_td:
             b_tag = value_td.find("b")
-            full_name = (b_tag.get_text(strip=True)
-                         if b_tag else value_td.get_text(strip=True))
+            full_name = (
+                b_tag.get_text(strip=True) if b_tag else value_td.get_text(strip=True)
+            )
 
     first_name = None
     last_name = None
@@ -349,8 +462,7 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
     # PHOTO URL (фото студента)
     # -----------------------------
     photo_img = soup.find(
-        "img",
-        src=lambda s: isinstance(s, str) and s.startswith("stud_photo.php")
+        "img", src=lambda s: isinstance(s, str) and s.startswith("stud_photo.php")
     )
 
     photoUrl = None
@@ -361,31 +473,29 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
     # EMAIL
     # -----------------------------
     email = None
-    email_td = soup.find(
-        "td",
-        string=lambda s: isinstance(s, str) and "Email :" in s
-    )
+    email_td = soup.find("td", string=lambda s: isinstance(s, str) and "Email :" in s)
     if email_td:
         value_td = email_td.find_next_sibling("td")
         if value_td:
             b_tag = value_td.find("b")
-            email = (b_tag.get_text(strip=True)
-                     if b_tag else value_td.get_text(strip=True))
+            email = (
+                b_tag.get_text(strip=True) if b_tag else value_td.get_text(strip=True)
+            )
 
     # -----------------------------
     # BIRTH DATE
     # -----------------------------
     birth_date = None
     birth_td = soup.find(
-        "td",
-        string=lambda s: isinstance(s, str) and "Birth date :" in s
+        "td", string=lambda s: isinstance(s, str) and "Birth date :" in s
     )
     if birth_td:
         value_td = birth_td.find_next_sibling("td")
         if value_td:
             b_tag = value_td.find("b")
-            birth_date = (b_tag.get_text(strip=True)
-                          if b_tag else value_td.get_text(strip=True))
+            birth_date = (
+                b_tag.get_text(strip=True) if b_tag else value_td.get_text(strip=True)
+            )
 
     # ---------- 2. Страница транскрипта (Grand GPA) ----------
     grand_gpa = None
@@ -400,16 +510,16 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
 
             # --------- Варианты текста для поиска ---------
             GPA_LABELS = [
-                "Grand GPA",                 # English
-                "Жалпы орталама балл",       # Kazakh (орталама)
-                "Жалпы орташа балл",         # Kazakh (орташа)
+                "Grand GPA",  # English
+                "Жалпы орталама балл",  # Kazakh (орталама)
+                "Жалпы орташа балл",  # Kazakh (орташа)
             ]
 
             # --------- 1) Поиск в таблицах <td> ---------
             gpa_label_td = tsoup.find(
                 "td",
                 string=lambda s: isinstance(s, str)
-                and any(label in s for label in GPA_LABELS)
+                and any(label in s for label in GPA_LABELS),
             )
 
             if gpa_label_td:
@@ -427,7 +537,7 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
                     # ищем казахский вариант
                     m = re.search(
                         r"(Жалпы\s+орталама\s+балл|Жалпы\s+орташа\s+балл)\s*[:\-]?\s*([0-9]\.\d{1,3})",
-                        text
+                        text,
                     )
                     if m:
                         grand_gpa = m.group(2)
@@ -436,7 +546,6 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
 
     except requests.exceptions.RequestException:
         pass
-
 
     # -----------------------------
     # Формируем документ профиля
@@ -463,7 +572,11 @@ def parse_student_profile(session: requests.Session, student_id: str) -> Dict[st
     )
 
     return profile
-def get_current_slot_info(time_rows) -> tuple[Optional[int], Optional[int], Optional[list]]:
+
+
+def get_current_slot_info(
+    time_rows,
+) -> tuple[Optional[int], Optional[int], Optional[list]]:
     """Определяем текущий временной слот и день недели по таблице."""
     now = datetime.now(KZT)
     current_time = now.time()
@@ -492,6 +605,8 @@ def get_current_slot_info(time_rows) -> tuple[Optional[int], Optional[int], Opti
             continue
 
     return None, None, None
+
+
 def extract_occupied_rooms(raw_text: str) -> Set[str]:
     """
     Извлекает коды занятых аудиторий из сырого HTML текста ячейки.
@@ -515,9 +630,7 @@ def extract_occupied_rooms(raw_text: str) -> Set[str]:
         room_codes = re.findall(r"(\s[A-Z]\s*\d{3}|\b[A-Z]\d{3}\b)", data_block)
         room_codes.extend(re.findall(r"\(([A-Z]\s*\d{3})\)", data_block))
 
-        final_rooms = {
-            r.strip().replace(" ", "") for r in room_codes if r.strip()
-        }
+        final_rooms = {r.strip().replace(" ", "") for r in room_codes if r.strip()}
 
         if final_rooms:
             occupied_rooms.update(final_rooms)
@@ -527,6 +640,8 @@ def extract_occupied_rooms(raw_text: str) -> Set[str]:
             occupied_rooms.add("I301")
 
     return occupied_rooms
+
+
 def get_free_rooms_for_now(session: requests.Session) -> RoomsResponse:
     """Достаём расписание, находим свободные кабинеты прямо сейчас."""
     schedule_params = {
@@ -623,6 +738,7 @@ def get_free_rooms_for_now(session: requests.Session) -> RoomsResponse:
         message=msg,
     )
 
+
 # ------------------------------------------------------
 #  FastAPI приложение
 # ------------------------------------------------------
@@ -640,6 +756,7 @@ app.add_middleware(
 # ------------------------------------------------------
 #  Эндпоинты
 # ------------------------------------------------------
+
 
 @app.post("/api/login", response_model=LoginResponse)
 def api_login(payload: LoginRequest):
@@ -701,6 +818,8 @@ def api_get_events():
     """
     docs = list(events_coll.find({}, {"_id": 0}))
     return docs
+
+
 @app.post("/api/rooms", response_model=RoomsResponse)
 def api_rooms(payload: LoginRequest):
     """
@@ -809,6 +928,7 @@ def api_register_event(payload: RegisterEventRequest):
         isRegistered=False,
         message="Неизвестное действие",
     )
+
 
 @app.get("/api/profile", response_model=ProfileResponse)
 def api_profile(studentId: str):

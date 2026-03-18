@@ -3,17 +3,24 @@ import express from "express";
 import cors from "cors";
 import { exec } from "child_process";
 import path from "path";
+import { fileURLToPath } from "url";
+import { existsSync } from "fs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Python: venv в проекте или системный python/py
+const venvPython = path.join(__dirname, "venv", "Scripts", "python.exe");
+const pythonCmd = existsSync(venvPython) ? `"${venvPython}"` : "python";
 
 const app = express();
 app.use(cors());
 
 app.get("/run-parser", (req, res) => {
-  // абсолютный путь к Python-скрипту
-  const pythonScript = path.resolve("./parser.py");
+  const pythonScript = path.resolve(__dirname, "parser.py");
 
   console.log("▶ Запуск парсера:", pythonScript);
 
-  exec(`py "${pythonScript}"`, { timeout: 60_000 }, (error, stdout, stderr) => {
+  exec(`${pythonCmd} "${pythonScript}"`, { timeout: 60_000 }, (error, stdout, stderr) => {
     if (error) {
       console.error("❌ Ошибка выполнения парсера:", error);
       return res.status(500).send(`Ошибка: ${error.message}`);

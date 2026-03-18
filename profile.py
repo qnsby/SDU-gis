@@ -5,12 +5,17 @@ from bs4 import BeautifulSoup
 from dataclasses import dataclass, asdict
 from typing import Optional, Dict
 import getpass
+import os
+from dotenv import load_dotenv
 
 # Отключаем ворнинги про SSL
 warnings.filterwarnings("ignore", "Unverified HTTPS request")
 
-LOGIN_URL = "https://my.sdu.edu.kz/loginAuth.php"
-HOME_URL = "https://my.sdu.edu.kz/index.php"
+# Загружаем переменные из .env файла
+load_dotenv()
+
+LOGIN_URL = os.getenv("LOGIN_URL", "https://my.sdu.edu.kz/loginAuth.php")
+HOME_URL = os.getenv("INDEX_URL", "https://my.sdu.edu.kz/index.php")
 
 
 @dataclass
@@ -34,6 +39,7 @@ class StudentProfile:
 
 # ---------- ЛОГИН ----------
 
+
 def login_and_get_session(student_id: str, password: str) -> requests.Session:
     """
     Логинимся в my.sdu.edu.kz и возвращаем сессию.
@@ -53,7 +59,9 @@ def login_and_get_session(student_id: str, password: str) -> requests.Session:
         "LogIn": " Log in ",
     }
 
-    resp = session.post(LOGIN_URL, data=login_data, headers=headers, verify=False, timeout=10)
+    resp = session.post(
+        LOGIN_URL, data=login_data, headers=headers, verify=False, timeout=10
+    )
 
     # Простая проверка (можно улучшать при желании)
     if "Student Information System" not in resp.text and "Home page" not in resp.text:
@@ -68,6 +76,7 @@ def login_and_get_session(student_id: str, password: str) -> requests.Session:
 
 # ---------- ЗАБРАТЬ HOME PAGE ----------
 
+
 def get_home_html(session: requests.Session) -> str:
     resp = session.get(HOME_URL, verify=False, timeout=10)
     resp.raise_for_status()
@@ -75,6 +84,7 @@ def get_home_html(session: requests.Session) -> str:
 
 
 # ---------- ПАРСИНГ ----------
+
 
 def parse_profile_from_home(html: str) -> StudentProfile:
     soup = BeautifulSoup(html, "html.parser")

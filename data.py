@@ -2,23 +2,28 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urljoin
 import warnings
+import os
+from dotenv import load_dotenv
 
 warnings.filterwarnings("ignore")
 
-login_url = "https://my.sdu.edu.kz/loginAuth.php"
-main_url = "https://my.sdu.edu.kz/index.php"   # главная "Home page"
+# Загружаем переменные из .env файла
+load_dotenv()
+
+login_url = os.getenv("LOGIN_URL", "https://my.sdu.edu.kz/loginAuth.php")
+main_url = os.getenv("INDEX_URL", "https://my.sdu.edu.kz/index.php")
 
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:132.0) Gecko/20100101 Firefox/132.0",
-    "Content-Type": "application/x-www-form-urlencoded"
+    "Content-Type": "application/x-www-form-urlencoded",
 }
 
-# ⚠️ лучше потом вынеси логин/пароль в переменные окружения
+# Учетные данные загружаются из .env файла
 login_data = {
-    "username": "230103235",
-    "password": "Dias2006",
+    "username": os.getenv("SDU_USERNAME", "230103235"),
+    "password": os.getenv("SDU_PASSWORD", "Dias2006"),
     "modstring": "",
-    "LogIn": " Log in "
+    "LogIn": " Log in ",
 }
 
 session = requests.Session()
@@ -38,16 +43,16 @@ soup = BeautifulSoup(resp_main.text, "html.parser")
 full_name = None
 
 fullname_label_td = soup.find(
-    "td",
-    string=lambda s: isinstance(s, str) and "Fullname :" in s
+    "td", string=lambda s: isinstance(s, str) and "Fullname :" in s
 )
 
 if fullname_label_td:
     value_td = fullname_label_td.find_next_sibling("td")
     if value_td:
         b_tag = value_td.find("b")
-        full_name = (b_tag.get_text(strip=True)
-                     if b_tag else value_td.get_text(strip=True))
+        full_name = (
+            b_tag.get_text(strip=True) if b_tag else value_td.get_text(strip=True)
+        )
 
 first_name = None
 last_name = None
@@ -60,7 +65,9 @@ if full_name:
         first_name = full_name
 
 # --- 4. ФОТО: ищем <img src="stud_photo.php?...">
-photo_img = soup.find("img", src=lambda s: isinstance(s, str) and s.startswith("stud_photo.php"))
+photo_img = soup.find(
+    "img", src=lambda s: isinstance(s, str) and s.startswith("stud_photo.php")
+)
 
 photo_url = None
 if photo_img and photo_img.get("src"):
